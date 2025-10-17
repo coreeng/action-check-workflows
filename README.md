@@ -1,4 +1,4 @@
-# Workflow Trigger Inspector
+# Check Workflows Action
 
 This reusable GitHub Action examines every workflow stored under `.github/workflows/` in the checked
 out repository (the pull request head) and reports which ones would be triggered for the current pull
