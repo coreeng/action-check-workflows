@@ -1,0 +1,19 @@
+name: "Workflow Trigger Inspector"
+description: "Determine which GitHub workflows from the pull request base branch should run for the current PR and modified files."
+author: "CECG (https://cecg.io)"
+inputs:
+  modified-files:
+    description: >
+      List of file paths that changed in the current context (newline separated or JSON array).
+    required: true
+outputs:
+  workflows:
+    description: "JSON array describing workflows triggered by the current event."
+  count:
+    description: "Number of workflows triggered by the current event."
+runs:
+  using: "docker"
+  image: "Dockerfile"
+branding:
+  color: "blue"
+  icon: "filter"
