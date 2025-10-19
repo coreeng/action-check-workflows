@@ -7,6 +7,12 @@ export default defineConfig({
   sourcemap: true,
   dts: true,
   clean: true,
-  skipNodeModulesBundle: false,
-  platform: 'node'
+  platform: 'node',
+  noExternal: [
+    '@actions/core',
+    '@actions/exec',
+    '@actions/github',
+    '@actions/workflow-parser',
+    'picomatch'
+  ]
 });
