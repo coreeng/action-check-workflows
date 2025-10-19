@@ -1,44 +1,17 @@
-"use strict";
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined") return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
 
 // src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  run: () => run
-});
-module.exports = __toCommonJS(index_exports);
-var core3 = __toESM(require("@actions/core"));
-var github = __toESM(require("@actions/github"));
+import * as core3 from "@actions/core";
+import * as github from "@actions/github";
 
 // src/changed-files.ts
-var core = __toESM(require("@actions/core"));
-var import_exec = require("@actions/exec");
+import * as core from "@actions/core";
+import { getExecOutput } from "@actions/exec";
 async function getChangedFiles(options) {
   const { octokit, repository, baseRef, headRef, diffStrategy = "three-dot" } = options;
   const basehead = diffStrategy === "two-dot" ? `${baseRef}..${headRef}` : `${baseRef}...${headRef}`;
@@ -100,7 +73,7 @@ function normalizeCompareResponse(data) {
 async function getFilesFromGit(baseRef, headRef, diffStrategy) {
   const range = diffStrategy === "two-dot" ? `${baseRef}..${headRef}` : `${baseRef}...${headRef}`;
   const args = ["diff", "--name-status", range];
-  const { stdout } = await (0, import_exec.getExecOutput)("git", args, { silent: true });
+  const { stdout } = await getExecOutput("git", args, { silent: true });
   const files = [];
   for (const line of stdout.trim().split("\n")) {
     if (!line) continue;
@@ -155,12 +128,16 @@ function normalizePath(path) {
 }
 
 // src/workflows.ts
-var core2 = __toESM(require("@actions/core"));
-var import_workflow_parser = require("@actions/workflow-parser");
-var import_node_buffer = require("buffer");
+import * as core2 from "@actions/core";
+import {
+  NoOperationTraceWriter,
+  convertWorkflowTemplate,
+  parseWorkflow
+} from "@actions/workflow-parser";
+import { Buffer as Buffer2 } from "buffer";
 
 // src/patterns.ts
-var import_picomatch = __toESM(require("picomatch"));
+import picomatch from "picomatch";
 var PICOMATCH_OPTIONS = {
   dot: true,
   posixSlashes: true,
@@ -172,7 +149,7 @@ function compilePattern(pattern) {
   return {
     pattern,
     negate,
-    matcher: (0, import_picomatch.default)(source, PICOMATCH_OPTIONS)
+    matcher: picomatch(source, PICOMATCH_OPTIONS)
   };
 }
 function compilePatterns(patterns = []) {
@@ -400,18 +377,18 @@ function decodeContent(content, encoding) {
   if (encoding !== "base64") {
     return content;
   }
-  return import_node_buffer.Buffer.from(content, "base64").toString("utf8");
+  return Buffer2.from(content, "base64").toString("utf8");
 }
 async function parseWorkflowFile(file) {
-  const trace = new import_workflow_parser.NoOperationTraceWriter();
-  const result = (0, import_workflow_parser.parseWorkflow)({ name: file.name, content: file.content }, trace);
+  const trace = new NoOperationTraceWriter();
+  const result = parseWorkflow({ name: file.name, content: file.content }, trace);
   if (!result.value) {
     return {
       template: void 0,
       errors: ["Workflow failed to parse."]
     };
   }
-  const template = await (0, import_workflow_parser.convertWorkflowTemplate)(result.context, result.value);
+  const template = await convertWorkflowTemplate(result.context, result.value);
   const parseErrors = result.context.errors.getErrors().map((err) => err.message);
   const templateErrors = template.errors?.map((err) => err.Message) ?? [];
   return {
@@ -829,7 +806,7 @@ async function writeSummary(options) {
   }
   await core3.summary.write();
 }
-if (typeof require !== "undefined" && typeof module !== "undefined" && require.main === module) {
+if (typeof __require !== "undefined" && typeof module !== "undefined" && __require.main === module) {
   run().catch((error) => {
     if (error instanceof Error) {
       core3.setFailed(error.message);
@@ -838,8 +815,7 @@ if (typeof require !== "undefined" && typeof module !== "undefined" && require.m
     }
   });
 }
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
+export {
   run
-});
+};
 //# sourceMappingURL=index.js.map

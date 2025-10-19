@@ -4,6 +4,7 @@
   "description": "Reusable GitHub Action that inspects workflow triggers against changed files between two git refs.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "tsup",
     "check": "npm run lint && npm run typecheck && npm run test",
