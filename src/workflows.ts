@@ -65,12 +65,30 @@ export async function assessWorkflows(options: AssessWorkflowsOptions): Promise<
   }
   const changedPaths = Array.from(pathSet);
 
+  core.info(
+    `Evaluating ${workflowFiles.length} workflow file(s) at ${repository.owner}/${repository.repo}@${ref} with ${changedPaths.length} unique changed path(s).`
+  );
+  if (changedPaths.length) {
+    core.info(`Changed paths: ${summarizeList(changedPaths)}`);
+  }
+
   const assessments: WorkflowAssessment[] = [];
 
   for (const file of workflowFiles) {
+    core.startGroup(`Workflow ${file.path}`);
+    core.info(`Processing workflow file ${file.name}`);
+
     const { template, errors } = await parseWorkflowFile(file);
 
     if (!template) {
+      if (errors.length) {
+        for (const error of errors) {
+          core.warning(`[${file.path}] ${error}`);
+        }
+      } else {
+        core.warning(`[${file.path}] Workflow failed to parse for an unknown reason.`);
+      }
+      core.endGroup();
       assessments.push({
         name: file.name,
         path: file.path,
@@ -83,14 +101,52 @@ export async function assessWorkflows(options: AssessWorkflowsOptions): Promise<
 
     const triggers = evaluateWorkflowTriggers(template, changedPaths, context);
     const autoTriggered = triggers.some((trigger) => trigger.matches);
+    const matchedTriggers = triggers.filter((trigger) => trigger.matches);
+
+    const workflowName = getTemplateName(template, file.name);
+
+    if (errors.length) {
+      for (const error of errors) {
+        core.warning(`[${file.path}] ${error}`);
+      }
+    } else {
+      core.info(`[${file.path}] Parsed successfully.`);
+    }
+
+    if (matchedTriggers.length) {
+      core.info(`Triggered events: ${summarizeList(matchedTriggers.map((trigger) => trigger.event), 5)}`);
+      const matchedFiles = new Set<string>();
+      for (const trigger of matchedTriggers) {
+        for (const matched of trigger.matchedFiles) {
+          matchedFiles.add(matched);
+        }
+      }
+      if (matchedFiles.size > 0) {
+        core.info(`Matched files: ${summarizeList([...matchedFiles])}`);
+      }
+    } else if (triggers.length) {
+      core.info('No events triggered for this workflow.');
+      core.info(
+        `Reasons: ${summarizeList(
+          triggers.map((trigger) => `${trigger.event}: ${trigger.reasons.join('; ') || 'filters did not match'}`),
+          5
+        )}`
+      );
+    } else {
+      core.info('Workflow does not define any triggers.');
+    }
+
+    core.info(`Auto triggered: ${autoTriggered ? 'yes' : 'no'} (${workflowName})`);
 
     assessments.push({
-      name: getTemplateName(template, file.name),
+      name: workflowName,
       path: file.path,
       triggers,
       autoTriggered,
       errors
     });
+
+    core.endGroup();
   }
 
   return assessments;
@@ -194,6 +250,15 @@ function getTemplateName(template: WorkflowTemplate, fallback: string): string {
   const nameToken = (template as { name?: { value?: unknown } }).name;
   const value = nameToken && typeof nameToken === 'object' ? (nameToken as { value?: unknown }).value : undefined;
   return typeof value === 'string' && value.length > 0 ? value : fallback;
+}
+
+function summarizeList(items: string[], max = 10): string {
+  if (!items.length) {
+    return 'none';
+  }
+  const visible = items.slice(0, max);
+  const remainder = items.length - visible.length;
+  return remainder > 0 ? `${visible.join(', ')}, …(+${remainder} more)` : visible.join(', ');
 }
 
 function isDirectoryEntry(entry: unknown): entry is Required<Pick<DirectoryEntry, 'path'>> & DirectoryEntry {

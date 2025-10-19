@@ -17714,12 +17714,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info3 = this._prepareRequest(verb, parsedUrl, headers);
+          let info4 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info3, data);
+            response = yield this.requestRaw(info4, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler2 of this.handlers) {
@@ -17729,7 +17729,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info3, data);
+                return authenticationHandler.handleAuthentication(this, info4, data);
               } else {
                 return response;
               }
@@ -17752,8 +17752,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info3 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info3, data);
+              info4 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info4, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -17782,7 +17782,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info3, data) {
+      requestRaw(info4, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -17794,7 +17794,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info3, data, callbackForResult);
+            this.requestRawWithCallback(info4, data, callbackForResult);
           });
         });
       }
@@ -17804,12 +17804,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info3, data, onResult) {
+      requestRawWithCallback(info4, data, onResult) {
         if (typeof data === "string") {
-          if (!info3.options.headers) {
-            info3.options.headers = {};
+          if (!info4.options.headers) {
+            info4.options.headers = {};
           }
-          info3.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info4.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -17818,7 +17818,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info3.httpModule.request(info3.options, (msg) => {
+        const req = info4.httpModule.request(info4.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -17830,7 +17830,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info3.options.path}`));
+          handleResult(new Error(`Request timeout: ${info4.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -17866,27 +17866,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info3 = {};
-        info3.parsedUrl = requestUrl;
-        const usingSsl = info3.parsedUrl.protocol === "https:";
-        info3.httpModule = usingSsl ? https : http;
+        const info4 = {};
+        info4.parsedUrl = requestUrl;
+        const usingSsl = info4.parsedUrl.protocol === "https:";
+        info4.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info3.options = {};
-        info3.options.host = info3.parsedUrl.hostname;
-        info3.options.port = info3.parsedUrl.port ? parseInt(info3.parsedUrl.port) : defaultPort;
-        info3.options.path = (info3.parsedUrl.pathname || "") + (info3.parsedUrl.search || "");
-        info3.options.method = method;
-        info3.options.headers = this._mergeHeaders(headers);
+        info4.options = {};
+        info4.options.host = info4.parsedUrl.hostname;
+        info4.options.port = info4.parsedUrl.port ? parseInt(info4.parsedUrl.port) : defaultPort;
+        info4.options.path = (info4.parsedUrl.pathname || "") + (info4.parsedUrl.search || "");
+        info4.options.method = method;
+        info4.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info3.options.headers["user-agent"] = this.userAgent;
+          info4.options.headers["user-agent"] = this.userAgent;
         }
-        info3.options.agent = this._getAgent(info3.parsedUrl);
+        info4.options.agent = this._getAgent(info4.parsedUrl);
         if (this.handlers) {
           for (const handler2 of this.handlers) {
-            handler2.prepareRequest(info3.options);
+            handler2.prepareRequest(info4.options);
           }
         }
-        return info3;
+        return info4;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -19878,34 +19878,34 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports.error = error;
-    function warning(message, properties = {}) {
+    function warning2(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports.warning = warning;
+    exports.warning = warning2;
     function notice(message, properties = {}) {
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports.notice = notice;
-    function info3(message) {
+    function info4(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports.info = info3;
-    function startGroup(name) {
+    exports.info = info4;
+    function startGroup3(name) {
       (0, command_1.issue)("group", name);
     }
-    exports.startGroup = startGroup;
-    function endGroup() {
+    exports.startGroup = startGroup3;
+    function endGroup3() {
       (0, command_1.issue)("endgroup");
     }
-    exports.endGroup = endGroup;
+    exports.endGroup = endGroup3;
     function group(name, fn) {
       return __awaiter(this, void 0, void 0, function* () {
-        startGroup(name);
+        startGroup3(name);
         let result;
         try {
           result = yield fn();
         } finally {
-          endGroup();
+          endGroup3();
         }
         return result;
       });
@@ -25763,12 +25763,12 @@ var require_log = __commonJS({
       if (logLevel === "debug")
         console.log(...messages);
     }
-    function warn(logLevel, warning) {
+    function warn(logLevel, warning2) {
       if (logLevel === "debug" || logLevel === "warn") {
         if (typeof node_process.emitWarning === "function")
-          node_process.emitWarning(warning);
+          node_process.emitWarning(warning2);
         else
-          console.warn(warning);
+          console.warn(warning2);
       }
     }
     exports.debug = debug;
@@ -29267,9 +29267,9 @@ var require_composer = __commonJS({
         this.prelude = [];
         this.errors = [];
         this.warnings = [];
-        this.onError = (source, code, message, warning) => {
+        this.onError = (source, code, message, warning2) => {
           const pos = getErrorPos(source);
-          if (warning)
+          if (warning2)
             this.warnings.push(new errors.YAMLWarning(pos, code, message));
           else
             this.errors.push(new errors.YAMLParseError(pos, code, message));
@@ -29340,10 +29340,10 @@ ${cb}` : comment;
           console.dir(token, { depth: null });
         switch (token.type) {
           case "directive":
-            this.directives.add(token.source, (offset, message, warning) => {
+            this.directives.add(token.source, (offset, message, warning2) => {
               const pos = getErrorPos(token);
               pos[0] += offset;
-              this.onError(pos, "BAD_DIRECTIVE", message, warning);
+              this.onError(pos, "BAD_DIRECTIVE", message, warning2);
             });
             this.prelude.push(token.source);
             this.atDirectives = true;
@@ -31376,7 +31376,7 @@ var require_public_api = __commonJS({
       const doc = parseDocument2(src, options);
       if (!doc)
         return null;
-      doc.warnings.forEach((warning) => log.warn(doc.options.logLevel, warning));
+      doc.warnings.forEach((warning2) => log.warn(doc.options.logLevel, warning2));
       if (doc.errors.length > 0) {
         if (doc.options.logLevel !== "silent")
           throw doc.errors[0];
@@ -42189,10 +42189,26 @@ async function assessWorkflows(options) {
     }
   }
   const changedPaths = Array.from(pathSet);
+  core2.info(
+    `Evaluating ${workflowFiles.length} workflow file(s) at ${repository.owner}/${repository.repo}@${ref} with ${changedPaths.length} unique changed path(s).`
+  );
+  if (changedPaths.length) {
+    core2.info(`Changed paths: ${summarizeList(changedPaths)}`);
+  }
   const assessments = [];
   for (const file of workflowFiles) {
+    core2.startGroup(`Workflow ${file.path}`);
+    core2.info(`Processing workflow file ${file.name}`);
     const { template, errors } = await parseWorkflowFile(file);
     if (!template) {
+      if (errors.length) {
+        for (const error of errors) {
+          core2.warning(`[${file.path}] ${error}`);
+        }
+      } else {
+        core2.warning(`[${file.path}] Workflow failed to parse for an unknown reason.`);
+      }
+      core2.endGroup();
       assessments.push({
         name: file.name,
         path: file.path,
@@ -42204,13 +42220,46 @@ async function assessWorkflows(options) {
     }
     const triggers = evaluateWorkflowTriggers(template, changedPaths, context2);
     const autoTriggered = triggers.some((trigger) => trigger.matches);
+    const matchedTriggers = triggers.filter((trigger) => trigger.matches);
+    const workflowName = getTemplateName(template, file.name);
+    if (errors.length) {
+      for (const error of errors) {
+        core2.warning(`[${file.path}] ${error}`);
+      }
+    } else {
+      core2.info(`[${file.path}] Parsed successfully.`);
+    }
+    if (matchedTriggers.length) {
+      core2.info(`Triggered events: ${summarizeList(matchedTriggers.map((trigger) => trigger.event), 5)}`);
+      const matchedFiles = /* @__PURE__ */ new Set();
+      for (const trigger of matchedTriggers) {
+        for (const matched of trigger.matchedFiles) {
+          matchedFiles.add(matched);
+        }
+      }
+      if (matchedFiles.size > 0) {
+        core2.info(`Matched files: ${summarizeList([...matchedFiles])}`);
+      }
+    } else if (triggers.length) {
+      core2.info("No events triggered for this workflow.");
+      core2.info(
+        `Reasons: ${summarizeList(
+          triggers.map((trigger) => `${trigger.event}: ${trigger.reasons.join("; ") || "filters did not match"}`),
+          5
+        )}`
+      );
+    } else {
+      core2.info("Workflow does not define any triggers.");
+    }
+    core2.info(`Auto triggered: ${autoTriggered ? "yes" : "no"} (${workflowName})`);
     assessments.push({
-      name: getTemplateName(template, file.name),
+      name: workflowName,
       path: file.path,
       triggers,
       autoTriggered,
       errors
     });
+    core2.endGroup();
   }
   return assessments;
 }
@@ -42296,6 +42345,14 @@ function getTemplateName(template, fallback) {
   const nameToken = template.name;
   const value = nameToken && typeof nameToken === "object" ? nameToken.value : void 0;
   return typeof value === "string" && value.length > 0 ? value : fallback;
+}
+function summarizeList(items, max = 10) {
+  if (!items.length) {
+    return "none";
+  }
+  const visible = items.slice(0, max);
+  const remainder = items.length - visible.length;
+  return remainder > 0 ? `${visible.join(", ")}, \u2026(+${remainder} more)` : visible.join(", ");
 }
 function isDirectoryEntry(entry) {
   return typeof entry === "object" && entry !== null && entry.type === "dir" && typeof entry.path === "string";
@@ -42541,6 +42598,7 @@ function getNestedString(source, path2) {
   return typeof value === "string" ? value : null;
 }
 async function run() {
+  core3.info("Starting Actions Check Workflows evaluation.");
   const token = core3.getInput("github-token", { required: true });
   const repoInput = core3.getInput("repository");
   const baseRefInput = core3.getInput("base-ref");
@@ -42565,6 +42623,14 @@ async function run() {
   }
   const diffStrategy = resolveDiffStrategy(diffStrategyInput, context2.eventName ?? "");
   const octokit = github.getOctokit(token);
+  core3.startGroup("Resolved Inputs");
+  core3.info(`Repository: ${repository.owner}/${repository.repo}`);
+  core3.info(`Base ref: ${baseRef}`);
+  core3.info(`Head ref: ${headRef}`);
+  core3.info(`Workflow ref: ${workflowRef}`);
+  core3.info(`Diff strategy (requested: ${diffStrategyInput || "auto"}): ${diffStrategy}`);
+  core3.info(`GitHub event: ${context2.eventName}`);
+  core3.endGroup();
   const changedFiles = await getChangedFiles({
     octokit,
     repository,
@@ -42572,6 +42638,23 @@ async function run() {
     headRef,
     diffStrategy
   });
+  core3.startGroup("Changed Files");
+  core3.info(
+    `Resolved ${changedFiles.files.length} file(s) using ${changedFiles.source.toUpperCase()} diff`
+  );
+  if (changedFiles.source === "git") {
+    core3.info("Fell back to local git diff to avoid API truncation.");
+  }
+  if (changedFiles.truncated) {
+    core3.info("File list may still be truncated.");
+  }
+  if (changedFiles.files.length) {
+    const formattedFiles = summarizeList2(changedFiles.files.map(formatChangedFile));
+    core3.info(`Files: ${formattedFiles}`);
+  } else {
+    core3.info("No changed files detected.");
+  }
+  core3.endGroup();
   const eventContext = buildEventContext({
     context: context2,
     refOverride: refInput,
@@ -42580,6 +42663,16 @@ async function run() {
     headBranchOverride: headBranchInput,
     actionOverride: actionInput
   });
+  core3.startGroup("Event Context");
+  core3.info(`Evaluating event: ${eventContext.eventName}`);
+  core3.info(`Ref: ${eventContext.ref ?? "unknown"}`);
+  core3.info(`Branch: ${eventContext.branchName ?? "n/a"}`);
+  core3.info(`Base branch: ${eventContext.baseBranch ?? "n/a"}`);
+  core3.info(`Head branch: ${eventContext.headBranch ?? "n/a"}`);
+  if (eventContext.action) {
+    core3.info(`Action: ${eventContext.action}`);
+  }
+  core3.endGroup();
   const assessments = await assessWorkflows({
     octokit,
     repository,
@@ -42588,6 +42681,17 @@ async function run() {
     context: eventContext
   });
   const triggeredWorkflows = assessments.filter((assessment) => assessment.autoTriggered);
+  core3.startGroup("Workflow Results");
+  core3.info(`Evaluated ${assessments.length} workflow file(s).`);
+  if (assessments.length) {
+    const triggeredNames = summarizeList2(triggeredWorkflows.map(formatWorkflowAssessment), 10);
+    if (triggeredWorkflows.length) {
+      core3.info(`Triggered workflows (${triggeredWorkflows.length}): ${triggeredNames}`);
+    } else {
+      core3.info("No workflows were automatically triggered.");
+    }
+  }
+  core3.endGroup();
   const report = {
     repository,
     baseRef,
@@ -42605,6 +42709,7 @@ async function run() {
     changedFilesCount: changedFiles.files.length,
     triggeredCount: triggeredWorkflows.length
   });
+  core3.info("Workflow trigger assessment complete. Summary written to job summary.");
 }
 function buildEventContext(options) {
   const { context: context2, refOverride, eventNameOverride, baseBranchOverride, headBranchOverride, actionOverride } = options;
@@ -42665,6 +42770,25 @@ function resolveHeadRef(headRefInput, context2) {
   }
   const sha = context2.sha;
   return sha ?? null;
+}
+function summarizeList2(items, max = 10) {
+  if (!items.length) {
+    return "none";
+  }
+  const visible = items.slice(0, max);
+  const remainder = items.length - visible.length;
+  return remainder > 0 ? `${visible.join(", ")}, \u2026(+${remainder} more)` : visible.join(", ");
+}
+function formatChangedFile(file) {
+  if (file.status === "renamed" && file.previousPath) {
+    return `renamed ${file.previousPath} -> ${file.path}`;
+  }
+  return `${file.status} ${file.path}`;
+}
+function formatWorkflowAssessment(assessment) {
+  const matchedEvents = assessment.triggers.filter((trigger) => trigger.matches).map((trigger) => trigger.event);
+  const eventSuffix = matchedEvents.length ? ` [${matchedEvents.join(", ")}]` : "";
+  return `${assessment.name} (${assessment.path})${eventSuffix}`;
 }
 function resolveDiffStrategy(strategy, eventName) {
   if (strategy === "two-dot" || strategy === "three-dot") {

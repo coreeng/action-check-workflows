@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { getChangedFiles } from './changed-files';
 import { assessWorkflows } from './workflows';
-import type { EventContext, GitHubRepository } from './types';
+import type { ChangedFile, EventContext, GitHubRepository, WorkflowAssessment } from './types';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -27,6 +27,8 @@ function getNestedString(source: unknown, path: readonly string[]): string | nul
 }
 
 export async function run(): Promise<void> {
+  core.info('Starting Actions Check Workflows evaluation.');
+
   const token = core.getInput('github-token', { required: true });
   const repoInput = core.getInput('repository');
   const baseRefInput = core.getInput('base-ref');
@@ -58,6 +60,15 @@ export async function run(): Promise<void> {
 
   const octokit = github.getOctokit(token);
 
+  core.startGroup('Resolved Inputs');
+  core.info(`Repository: ${repository.owner}/${repository.repo}`);
+  core.info(`Base ref: ${baseRef}`);
+  core.info(`Head ref: ${headRef}`);
+  core.info(`Workflow ref: ${workflowRef}`);
+  core.info(`Diff strategy (requested: ${diffStrategyInput || 'auto'}): ${diffStrategy}`);
+  core.info(`GitHub event: ${context.eventName}`);
+  core.endGroup();
+
   const changedFiles = await getChangedFiles({
     octokit,
     repository,
@@ -65,6 +76,24 @@ export async function run(): Promise<void> {
     headRef,
     diffStrategy
   });
+
+  core.startGroup('Changed Files');
+  core.info(
+    `Resolved ${changedFiles.files.length} file(s) using ${changedFiles.source.toUpperCase()} diff`
+  );
+  if (changedFiles.source === 'git') {
+    core.info('Fell back to local git diff to avoid API truncation.');
+  }
+  if (changedFiles.truncated) {
+    core.info('File list may still be truncated.');
+  }
+  if (changedFiles.files.length) {
+    const formattedFiles = summarizeList(changedFiles.files.map(formatChangedFile));
+    core.info(`Files: ${formattedFiles}`);
+  } else {
+    core.info('No changed files detected.');
+  }
+  core.endGroup();
 
   const eventContext: EventContext = buildEventContext({
     context,
@@ -75,6 +104,17 @@ export async function run(): Promise<void> {
     actionOverride: actionInput
   });
 
+  core.startGroup('Event Context');
+  core.info(`Evaluating event: ${eventContext.eventName}`);
+  core.info(`Ref: ${eventContext.ref ?? 'unknown'}`);
+  core.info(`Branch: ${eventContext.branchName ?? 'n/a'}`);
+  core.info(`Base branch: ${eventContext.baseBranch ?? 'n/a'}`);
+  core.info(`Head branch: ${eventContext.headBranch ?? 'n/a'}`);
+  if (eventContext.action) {
+    core.info(`Action: ${eventContext.action}`);
+  }
+  core.endGroup();
+
   const assessments = await assessWorkflows({
     octokit,
     repository,
@@ -84,6 +124,18 @@ export async function run(): Promise<void> {
   });
 
   const triggeredWorkflows = assessments.filter((assessment) => assessment.autoTriggered);
+
+  core.startGroup('Workflow Results');
+  core.info(`Evaluated ${assessments.length} workflow file(s).`);
+  if (assessments.length) {
+    const triggeredNames = summarizeList(triggeredWorkflows.map(formatWorkflowAssessment), 10);
+    if (triggeredWorkflows.length) {
+      core.info(`Triggered workflows (${triggeredWorkflows.length}): ${triggeredNames}`);
+    } else {
+      core.info('No workflows were automatically triggered.');
+    }
+  }
+  core.endGroup();
 
   const report = {
     repository,
@@ -104,6 +156,8 @@ export async function run(): Promise<void> {
     changedFilesCount: changedFiles.files.length,
     triggeredCount: triggeredWorkflows.length
   });
+
+  core.info('Workflow trigger assessment complete. Summary written to job summary.');
 }
 
 interface EventContextOptions {
@@ -199,6 +253,30 @@ function resolveHeadRef(headRefInput: string, context: typeof github.context): s
 
   const sha = context.sha;
   return sha ?? null;
+}
+
+function summarizeList(items: string[], max = 10): string {
+  if (!items.length) {
+    return 'none';
+  }
+  const visible = items.slice(0, max);
+  const remainder = items.length - visible.length;
+  return remainder > 0 ? `${visible.join(', ')}, …(+${remainder} more)` : visible.join(', ');
+}
+
+function formatChangedFile(file: ChangedFile): string {
+  if (file.status === 'renamed' && file.previousPath) {
+    return `renamed ${file.previousPath} -> ${file.path}`;
+  }
+  return `${file.status} ${file.path}`;
+}
+
+function formatWorkflowAssessment(assessment: WorkflowAssessment): string {
+  const matchedEvents = assessment.triggers
+    .filter((trigger) => trigger.matches)
+    .map((trigger) => trigger.event);
+  const eventSuffix = matchedEvents.length ? ` [${matchedEvents.join(', ')}]` : '';
+  return `${assessment.name} (${assessment.path})${eventSuffix}`;
 }
 
 function resolveDiffStrategy(strategy: string, eventName: string): 'two-dot' | 'three-dot' {
