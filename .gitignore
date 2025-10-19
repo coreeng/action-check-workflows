@@ -1,17 +1,4 @@
-# Binaries
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Build directories
-bin/
-build/
+node_modules/
 dist/
-
-# Go test binary
-*.test
-
-# Coverage reports
-*.out
+.DS_Store
+coverage/

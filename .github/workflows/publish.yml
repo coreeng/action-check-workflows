@@ -1,0 +1,61 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (e.g. v1.0.0)
+        required: true
+      release-name:
+        description: Release title (defaults to the tag)
+        required: false
+      draft:
+        description: Create the release as a draft
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Test
+        run: pnpm test
+      - name: Build
+        run: pnpm build
+      - name: Verify dist is up to date
+        run: |
+          if ! git diff --quiet -- dist; then
+            echo '::error::dist/ contains uncommitted changes. Run pnpm build and commit the results before publishing.'
+            git status --short dist || true
+            git diff --stat dist || true
+            exit 1
+          fi
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.release-name || inputs.tag }}
+          draft: ${{ inputs.draft }}
+          files: |
+            dist/index.js
+            dist/index.js.map
+            dist/index.d.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

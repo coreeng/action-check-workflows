@@ -1,78 +1,61 @@
-# Check Workflows Action
+# Actions Check Workflows
 
-This reusable GitHub Action examines every workflow stored under `.github/workflows/` in the checked
-out repository (the pull request head) and reports which ones would be triggered for the current pull
-request and the set of modified files. The focus is on `pull_request` events: the action evaluates the
-workflows exactly as they exist in the PR branch.
-
-The action parses workflow YAML using the open source [`nektos/act`](https://github.com/nektos/act)
-parser so that event filters such as `paths`, `paths-ignore`, `branches`, and `tags` are
-interpreted in a GitHub-compatible way.
+Reusable JavaScript action that cross-references repository changes against every workflow in `.github/workflows` to determine which workflows will run automatically. It compares two git references, evaluates branch and path filters using `picomatch`, and reports the workflows whose triggers match the supplied changes.
 
 ## Inputs
 
 | Name | Required | Description |
-| ---- | -------- | ----------- |
-| `modified-files` | ✅ | List of changed file paths. Accepts a newline-separated string or a JSON array (`["src/main.go","pkg/util.go"]`). Paths should be relative to the repository root. |
+| --- | --- | --- |
+| `github-token` | ✅ | Token with `repo` scope (typically `${{ secrets.GITHUB_TOKEN }}`) used for compare and content API calls. |
+| `repository` | ❌ | Repository in `owner/name` form. Defaults to the current repository. |
+| `base-ref` | ❌ | Base commit SHA for comparisons. Falls back to the event payload when omitted. |
+| `head-ref` | ❌ | Head commit SHA for comparisons. Defaults to the triggering commit/PR head. |
+| `workflow-ref` | ❌ | Git ref used to load workflows. Defaults to `head-ref`. |
+| `event-name` | ❌ | Override the GitHub event name used for evaluation. |
+| `ref` | ❌ | Override ref used for branch evaluation (e.g. `refs/heads/main`). |
+| `base-branch` | ❌ | Override base branch for pull request style events. |
+| `head-branch` | ❌ | Override head branch for pull request style events. |
+| `pull-request-action` | ❌ | Override pull request action (e.g. `synchronize`, `opened`). |
+| `diff-strategy` | ❌ | Diff mode: `auto` (default), `two-dot`, or `three-dot`. |
 
 ## Outputs
 
 | Name | Description |
-| ---- | ----------- |
-| `workflows` | JSON array of the workflows that should run. Each entry includes the workflow name, path, and the matching event (e.g. `[{ "name": "ci", "path": ".github/workflows/ci.yml", "events": ["pull_request"] }]`). |
-| `count` | Number of workflows that matched. |
+| --- | --- |
+| `changed-files` | JSON array describing every changed file (path, status, `previousPath` for renames). |
+| `triggered-workflows` | JSON array of workflow assessments that evaluated to `autoTriggered = true`. |
+| `report` | Complete JSON report containing inputs, changed files, and every workflow assessment. |
 
-## Example Usage
+## Usage
 
 ```yaml
 jobs:
-  determine-workflows:
+  evaluate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Gather changed files
-        id: changes
-        run: |
-          git fetch origin "$GITHUB_BASE_REF"
-          files=$(git diff --name-only "origin/$GITHUB_BASE_REF"...HEAD)
-          printf 'files<<EOF\n%s\nEOF\n' "$files" >> "$GITHUB_OUTPUT"
-
-      - name: Detect workflows
-        id: detect
-        uses: ./ # or use the published action reference
+      - uses: your-org/actions-check-workflows@v1
+        id: inspector
         with:
-          modified-files: ${{ steps.changes.outputs.files }}
-
-      - name: Show results
-        run: |
-          echo "Triggered workflows:"
-          echo '${{ steps.detect.outputs.workflows }}'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          base-ref: ${{ github.event.pull_request.base.sha }}
+          head-ref: ${{ github.event.pull_request.head.sha }}
+      - run: echo "Workflows => ${{ steps.inspector.outputs.triggered-workflows }}"
 ```
-
-When used in pull request workflows, supply the list of files that differ between the PR head
-and base (for example via `git diff --name-only` or the `actions/github-script` API).
 
 ## Development
 
-```bash
-go test ./...
-```
+- Node.js 22 is recommended for local work. Install dependencies with `pnpm install`.
+- Useful scripts:
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm build`
 
-The unit test suite exercises path filtering, branch filtering, tag filtering, and event type
-edge cases. The action itself can be run locally via:
+The action is bundled with `tsup`; the compiled files in `dist/` should be committed when publishing updates.
 
-```bash
-docker build -t workflow-trigger-inspector .
-docker run --rm \
-  -e GITHUB_EVENT_NAME=pull_request \
-  -e GITHUB_BASE_REF=main \
-  -e INPUT_MODIFIED_FILES='["src/main.go"]' \
-  -v "$(pwd)":/workspace \
-  -w /workspace \
-  workflow-trigger-inspector
-```
+## Release
 
-## License
-
-This project is licensed under the MIT License.
+1. Update the changelog (if applicable) and run `pnpm build`.
+2. Commit the generated `dist/` output.
+3. Use the provided `publish.yml` workflow to create a tagged release or manually push a tag.

@@ -1,19 +1,53 @@
-name: "Workflow Trigger Inspector"
-description: "Determine which GitHub workflows from the pull request base branch should run for the current PR and modified files."
-author: "CECG (https://cecg.io)"
-inputs:
-  modified-files:
-    description: >
-      List of file paths that changed in the current context (newline separated or JSON array).
-    required: true
-outputs:
-  workflows:
-    description: "JSON array describing workflows triggered by the current event."
-  count:
-    description: "Number of workflows triggered by the current event."
-runs:
-  using: "docker"
-  image: "Dockerfile"
+name: Actions Check Workflows
+description: Evaluate changed files against workflow triggers to see which workflows run automatically.
+author: pyo
 branding:
-  color: "blue"
-  icon: "filter"
+  icon: search
+  color: blue
+inputs:
+  github-token:
+    description: GitHub token with repo scope to read comparisons and workflow files.
+    required: true
+  repository:
+    description: Repository in owner/name format. Defaults to the current repository.
+    required: false
+    default: ${{ github.repository }}
+  base-ref:
+    description: Base git ref (commit SHA) used for the comparison.
+    required: false
+  head-ref:
+    description: Head git ref (commit SHA) used for the comparison.
+    required: false
+  workflow-ref:
+    description: Git ref used when loading workflow files. Defaults to head-ref.
+    required: false
+  event-name:
+    description: Override for the GitHub event name when evaluating triggers.
+    required: false
+  ref:
+    description: Override reference name (e.g. refs/heads/main) for branch evaluation.
+    required: false
+  base-branch:
+    description: Override base branch name for pull request style events.
+    required: false
+  head-branch:
+    description: Override head branch name for pull request style events.
+    required: false
+  pull-request-action:
+    description: Override pull request action (e.g. synchronize, opened) when evaluating types filters.
+    required: false
+  diff-strategy:
+    description: >-
+      Diff strategy to use: auto, two-dot, or three-dot. Defaults to auto, which matches GitHub evaluation for push and PR events.
+    required: false
+    default: auto
+outputs:
+  changed-files:
+    description: JSON array of changed files with status information.
+  triggered-workflows:
+    description: JSON array containing workflows that will run automatically for the supplied changes.
+  report:
+    description: JSON document containing the full evaluation report.
+runs:
+  using: node20
+  main: dist/index.js

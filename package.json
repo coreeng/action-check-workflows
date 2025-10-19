@@ -1,0 +1,47 @@
+{
+  "name": "actions-check-workflows",
+  "version": "0.1.0",
+  "description": "Reusable GitHub Action that inspects workflow triggers against changed files between two git refs.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "lint": "eslint . --ext .ts",
+    "prepare": "pnpm run build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "github-actions",
+    "workflow",
+    "paths-filter"
+  ],
+  "author": "CECG (https://cecg.io)",
+  "license": "Apache-2.0",
+  "files": [
+    "dist",
+    "action.yml",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.18.3",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^6.0.1",
+    "@actions/workflow-parser": "^0.3.19",
+    "picomatch": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.8.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "eslint": "^9.38.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
