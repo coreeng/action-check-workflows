@@ -6,9 +6,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup",
-    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "check": "npm run lint && npm run typecheck && npm run test",
     "lint": "eslint . --ext .ts",
-    "prepare": "pnpm run build",
+    "prepare": "npm run build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -25,9 +25,9 @@
     "README.md"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
-  "packageManager": "pnpm@10.18.3",
+  "packageManager": "npm@10.9.3",
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",

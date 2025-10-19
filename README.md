@@ -45,17 +45,17 @@ jobs:
 
 ## Development
 
-- Node.js 22 is recommended for local work. Install dependencies with `pnpm install`.
+- Node.js 22 is recommended for local work. Install dependencies with `npm install`.
 - Useful scripts:
-  - `pnpm lint`
-  - `pnpm typecheck`
-  - `pnpm test`
-  - `pnpm build`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm run test`
+  - `npm run build`
 
 The action is bundled with `tsup`; the compiled files in `dist/` should be committed when publishing updates.
 
 ## Release
 
-1. Update the changelog (if applicable) and run `pnpm build`.
+1. Update the changelog (if applicable) and run `npm run build`.
 2. Commit the generated `dist/` output.
 3. Use the provided `publish.yml` workflow to create a tagged release or manually push a tag.

@@ -49,5 +49,5 @@ outputs:
   report:
     description: JSON document containing the full evaluation report.
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
