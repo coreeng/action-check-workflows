@@ -7,6 +7,7 @@ export default defineConfig({
   sourcemap: true,
   dts: true,
   clean: true,
+  shims: true,
   platform: 'node',
   noExternal: [
     '@actions/core',
@@ -14,5 +15,12 @@ export default defineConfig({
     '@actions/github',
     '@actions/workflow-parser',
     'picomatch'
-  ]
+  ],
+  banner: {
+    js: [
+      "import { createRequire as __createRequire } from 'node:module';",
+      "const require = __createRequire(import.meta.url);",
+      "globalThis.require ??= require;"
+    ].join('\n')
+  }
 });
