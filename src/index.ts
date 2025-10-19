@@ -325,7 +325,11 @@ async function writeSummary(options: {
   await core.summary.write();
 }
 
-if (typeof require !== 'undefined' && typeof module !== 'undefined' && require.main === module) {
+const isDirectExecution =
+  typeof require !== 'undefined' && typeof module !== 'undefined' && require.main === module;
+const isGitHubActionsRun = process.env.GITHUB_ACTIONS === 'true';
+
+if (isDirectExecution || isGitHubActionsRun) {
   run().catch((error) => {
     if (error instanceof Error) {
       core.setFailed(error.message);

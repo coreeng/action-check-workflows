@@ -42826,7 +42826,9 @@ async function writeSummary(options) {
   }
   await core3.summary.write();
 }
-if (typeof __require !== "undefined" && typeof module !== "undefined" && __require.main === module) {
+var isDirectExecution = typeof __require !== "undefined" && typeof module !== "undefined" && __require.main === module;
+var isGitHubActionsRun = process.env.GITHUB_ACTIONS === "true";
+if (isDirectExecution || isGitHubActionsRun) {
   run().catch((error) => {
     if (error instanceof Error) {
       core3.setFailed(error.message);
